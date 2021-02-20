@@ -3,12 +3,7 @@ name: Test
 on:
   push:
     branches:
-      - tb_plugin
-      - master
-  pull_request:
-    branches:
-      - tb_plugin
-      - master
+      - test_action2
 
 jobs:
   build:

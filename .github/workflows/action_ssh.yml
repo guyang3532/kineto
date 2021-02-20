@@ -1,0 +1,16 @@
+name: TestSSH
+
+on:
+  push:
+    branches:
+      - test_action2
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Start SSH via tmate
+      uses: P3TERX/ssh2actions@main
+
