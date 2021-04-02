@@ -25,8 +25,10 @@ class RunGenerator(object):
         profile_run.views.append(consts.OP_VIEW)
         profile_run.operation_pie_by_name = self._generate_op_pie()
         profile_run.operation_table_by_name = self._generate_op_table()
+        profile_run.operation_stack_by_name = self._generate_op_table(False, True)
         profile_run.operation_pie_by_name_input = self._generate_op_pie(True)
-        profile_run.operation_table_by_name_input = self._generate_op_table(True)
+        profile_run.operation_table_by_name_input = self._generate_op_table(True, False)
+        profile_run.operation_stack_by_name_input = self._generate_op_table(True, True)
 
         if self.profile_data.has_kernel:
             profile_run.views.append(consts.KERNEL_VIEW)
@@ -197,7 +199,7 @@ class RunGenerator(object):
 
         return data
 
-    def _generate_op_table(self, group_by_input_shape=False):
+    def _generate_op_table(self, group_by_input_shape=False, call_stack=False):
         show_gpu = self.profile_data.has_kernel or self.profile_data.has_memcpy_or_memset
 
         columns = [{"type": "string", "name": "Name"}]
@@ -212,6 +214,13 @@ class RunGenerator(object):
         columns.extend([{"type": "number", "name": "Host Self Duration (us)"},
                         {"type": "number", "name": "Host Total Duration (us)"}])
 
+        if call_stack:
+            columns.append({"type": "string", "name": "Call Stack"})
+            return self._generate_op_table_stack(show_gpu, group_by_input_shape, columns)
+        else:
+            return self._generate_op_table_normal(show_gpu, group_by_input_shape, columns)
+
+    def _generate_op_table_normal(self, show_gpu, group_by_input_shape, columns):
         if group_by_input_shape:
             op_list = self.profile_data.op_list_groupby_name_input
         else:
@@ -237,6 +246,35 @@ class RunGenerator(object):
 
         data = {"data": {"columns": columns, "rows": rows}}
         return data
+
+    def _generate_op_table_stack(self, show_gpu, group_by_input_shape, columns):
+        if group_by_input_shape:
+            stack_lists_dict = self.profile_data.stack_lists_group_by_name_input
+        else:
+            stack_lists_dict = self.profile_data.stack_lists_group_by_name
+
+        result = dict()
+        for k,v in stack_lists_dict.items():
+            op_list = sorted(v,
+                             key=lambda x: x.self_device_duration if show_gpu else x.self_host_duration,
+                             reverse=True)
+            rows = []
+            for op in op_list:
+                # Whether device_duration & self_device_duration are accurate or not depends on the input tracing data.
+                row = [op.name]
+                if group_by_input_shape:
+                    row.append(op.input_shape)
+
+                row.append(op.calls)
+                if show_gpu:
+                    row.extend([round(op.self_device_duration), round(op.device_duration)])
+
+                row.extend([round(op.self_host_duration), round(op.host_duration)])
+                row.append(op.call_stacks.pop())
+                rows.append(row)
+
+            result[k] = {"data": {"columns": columns, "rows": rows}}
+        return result
 
     def _generate_kernel_op_table(self):
         table = {}
