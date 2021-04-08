@@ -265,7 +265,15 @@ export const Operator: React.FC<IProps> = (props) => {
               </Grid>
               <Grid>
                 <DataLoading value={operatorTable}>
-                  {(table) => <OperationTable data={table} groupBy={groupBy} />}
+                  {(table) => (
+                    <OperationTable
+                      data={table}
+                      groupBy={groupBy}
+                      run={run}
+                      view={view}
+                      worker={worker}
+                    />
+                  )}
                 </DataLoading>
               </Grid>
             </Grid>

@@ -120,13 +120,13 @@ export interface CallStackTableDataInner {
    * @type {number}
    * @memberof CallStackTableDataInner
    */
-  deviceSelfDuration: number
+  deviceSelfDuration?: number
   /**
    *
    * @type {number}
    * @memberof CallStackTableDataInner
    */
-  deviceTotalDuration: number
+  deviceTotalDuration?: number
   /**
    *
    * @type {number}
@@ -282,13 +282,13 @@ export interface OperationTableDataInner {
    * @type {number}
    * @memberof OperationTableDataInner
    */
-  deviceSelfDuration: number
+  deviceSelfDuration?: number
   /**
    *
    * @type {number}
    * @memberof OperationTableDataInner
    */
-  deviceTotalDuration: number
+  deviceTotalDuration?: number
   /**
    *
    * @type {number}

@@ -421,8 +421,6 @@ components:
         required:
           - name
           - calls
-          - device_self_duration
-          - device_total_duration
           - host_self_duration
           - host_total_duration
           - has_call_stack
@@ -450,8 +448,6 @@ components:
         required:
           - name
           - calls
-          - device_self_duration
-          - device_total_duration
           - host_self_duration
           - host_total_duration
         properties:
