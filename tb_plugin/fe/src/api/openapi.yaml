@@ -425,6 +425,7 @@ components:
           - device_total_duration
           - host_self_duration
           - host_total_duration
+          - has_call_stack
         properties:
           name:
             type: string
@@ -440,6 +441,8 @@ components:
             type: number
           host_total_duration:
             type: number
+          has_call_stack:
+            type: boolean
     CallStackTableData:
       type: array
       items:
