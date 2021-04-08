@@ -175,7 +175,7 @@ paths:
               - OperationAndInputShape
           description: Group By
         - in: query
-          name: name
+          name: op_name
           required: true
           schema:
             type: string

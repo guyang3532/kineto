@@ -11,8 +11,8 @@ import Modal from '@material-ui/core/Modal'
 import * as api from '../../api'
 import { DataLoading } from '../DataLoading'
 import { CallStackTable } from './CallStackTable'
-import { getCommonOperationColumns } from './common'
-import Button from '@material-ui/core/Button'
+import { attachId, commonTableProps, getCommonOperationColumns } from './common'
+import { ViewCallStackButton } from './ViewCallStackButton'
 
 export interface IProps {
   data: OperationTableData
@@ -22,9 +22,21 @@ export interface IProps {
   groupBy: OperationGroupBy
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%'
+  },
+  paper: {
+    position: 'absolute',
+    width: '70%',
+    minWidth: '400px',
+    left: '50%',
+    top: '50%',
+    transform: `translate(-50%, -50%)`,
+    backgroundColor: theme.palette.background.paper,
+    border: '2px solid #000',
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3)
   }
 }))
 
@@ -59,24 +71,22 @@ export const OperationTable = (props: IProps) => {
 
   const callStackColumnDef: GridColDef = React.useMemo(
     () => ({
-      field: 'call_stack',
+      field: 'has_call_stack',
       headerName: 'Call Stack',
       filterable: false,
       disableColumnMenu: true,
       hideSortIcons: true,
       renderCell: (params) => {
-        const onClick = () => {
-          const name = params.getValue('name') as string
-          const inputShape = params.getValue('input_shape') as
-            | string
-            | undefined
-          onShowCallStackClicked(name, inputShape)
-        }
+        const name = params.row.name as string
+        const inputShape = params.row.input_shape as string | undefined
 
         return (
-          <Button disabled={!params.value} onClick={onClick}>
-            View
-          </Button>
+          <ViewCallStackButton
+            name={name}
+            inputShape={inputShape}
+            has_call_stack={!!params.value}
+            onClick={onShowCallStackClicked}
+          />
         )
       }
     }),
@@ -84,11 +94,8 @@ export const OperationTable = (props: IProps) => {
   )
 
   const columns: GridColDef[] = React.useMemo(
-    () =>
-      getCommonOperationColumns(callStackTableData).concat([
-        callStackColumnDef
-      ]),
-    [callStackTableData, callStackColumnDef]
+    () => getCommonOperationColumns(data).concat([callStackColumnDef]),
+    [data, callStackColumnDef]
   )
 
   const sortModel: GridSortModel = React.useMemo(
@@ -105,20 +112,22 @@ export const OperationTable = (props: IProps) => {
     [callStackTableData]
   )
 
+  const rows = React.useMemo(() => attachId(data), [data])
+
   return (
     <div className={classes.root}>
       <DataGrid
+        {...commonTableProps}
         columns={columns}
         sortModel={sortModel}
-        rows={data}
-        pageSize={30}
+        rows={rows}
       />
       <Modal
         title="Call stack"
         open={callStackModalOpen}
         onClose={closeCallStackModal}
       >
-        {renderedTable}
+        <div className={classes.paper}>{renderedTable}</div>
       </Modal>
     </div>
   )

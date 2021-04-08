@@ -701,7 +701,7 @@ export const DefaultApiFetchParamCreator = function (
      * @param {string} worker
      * @param {string} view
      * @param {string} groupBy Group By
-     * @param {string} name
+     * @param {string} opName
      * @param {string} [inputShape]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -711,7 +711,7 @@ export const DefaultApiFetchParamCreator = function (
       worker: string,
       view: string,
       groupBy: string,
-      name: string,
+      opName: string,
       inputShape?: string,
       options: any = {}
     ): FetchArgs {
@@ -743,11 +743,11 @@ export const DefaultApiFetchParamCreator = function (
           'Required parameter groupBy was null or undefined when calling operationStackGet.'
         )
       }
-      // verify required parameter 'name' is not null or undefined
-      if (name === null || name === undefined) {
+      // verify required parameter 'opName' is not null or undefined
+      if (opName === null || opName === undefined) {
         throw new RequiredError(
-          'name',
-          'Required parameter name was null or undefined when calling operationStackGet.'
+          'opName',
+          'Required parameter opName was null or undefined when calling operationStackGet.'
         )
       }
       const localVarPath = `/operation/stack`
@@ -772,8 +772,8 @@ export const DefaultApiFetchParamCreator = function (
         localVarQueryParameter['group_by'] = groupBy
       }
 
-      if (name !== undefined) {
-        localVarQueryParameter['name'] = name
+      if (opName !== undefined) {
+        localVarQueryParameter['op_name'] = opName
       }
 
       if (inputShape !== undefined) {
@@ -1265,7 +1265,7 @@ export const DefaultApiFp = function (configuration?: Configuration) {
      * @param {string} worker
      * @param {string} view
      * @param {string} groupBy Group By
-     * @param {string} name
+     * @param {string} opName
      * @param {string} [inputShape]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1275,13 +1275,21 @@ export const DefaultApiFp = function (configuration?: Configuration) {
       worker: string,
       view: string,
       groupBy: string,
-      name: string,
+      opName: string,
       inputShape?: string,
       options?: any
     ): (fetch?: FetchAPI, basePath?: string) => Promise<CallStackTableData> {
       const localVarFetchArgs = DefaultApiFetchParamCreator(
         configuration
-      ).operationStackGet(run, worker, view, groupBy, name, inputShape, options)
+      ).operationStackGet(
+        run,
+        worker,
+        view,
+        groupBy,
+        opName,
+        inputShape,
+        options
+      )
       return (
         fetch: FetchAPI = portableFetch,
         basePath: string = BASE_PATH
@@ -1575,7 +1583,7 @@ export const DefaultApiFactory = function (
      * @param {string} worker
      * @param {string} view
      * @param {string} groupBy Group By
-     * @param {string} name
+     * @param {string} opName
      * @param {string} [inputShape]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1585,7 +1593,7 @@ export const DefaultApiFactory = function (
       worker: string,
       view: string,
       groupBy: string,
-      name: string,
+      opName: string,
       inputShape?: string,
       options?: any
     ) {
@@ -1594,7 +1602,7 @@ export const DefaultApiFactory = function (
         worker,
         view,
         groupBy,
-        name,
+        opName,
         inputShape,
         options
       )(fetch, basePath)
@@ -1778,7 +1786,7 @@ export class DefaultApi extends BaseAPI {
    * @param {string} worker
    * @param {string} view
    * @param {string} groupBy Group By
-   * @param {string} name
+   * @param {string} opName
    * @param {string} [inputShape]
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1789,7 +1797,7 @@ export class DefaultApi extends BaseAPI {
     worker: string,
     view: string,
     groupBy: string,
-    name: string,
+    opName: string,
     inputShape?: string,
     options?: any
   ) {
@@ -1798,7 +1806,7 @@ export class DefaultApi extends BaseAPI {
       worker,
       view,
       groupBy,
-      name,
+      opName,
       inputShape,
       options
     )(this.fetch, this.basePath)

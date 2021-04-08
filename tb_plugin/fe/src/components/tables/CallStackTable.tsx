@@ -6,12 +6,10 @@ import * as React from 'react'
 import { DataGrid, GridColDef, GridSortModel } from '@material-ui/data-grid'
 import { makeStyles } from '@material-ui/core/styles'
 import { CallStackTableData } from '../../api'
-import { getCommonOperationColumns } from './common'
+import { attachId, commonTableProps, getCommonOperationColumns } from './common'
 import { CallStackFrame, transformTableData } from './transform'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import Button from '@material-ui/core/Button'
-import { navToCode } from '../../utils/vscode'
+import { EmpytCallStackCell } from './EmptyCallStackCell'
+import { CallStackViewCell } from './CallStackViewCell'
 
 export interface IProps {
   data: CallStackTableData
@@ -19,7 +17,8 @@ export interface IProps {
 
 const useStyles = makeStyles(() => ({
   root: {
-    width: '100%'
+    width: '100%',
+    height: '100%'
   }
 }))
 
@@ -37,32 +36,19 @@ export const CallStackTable = (props: IProps) => {
       renderCell: (params) => {
         const value = params.value as CallStackFrame[]
         if (!value.length) {
-          return <div>-</div>
+          return <EmpytCallStackCell />
         }
 
-        return (
-          <List>
-            {value.map((frame) => {
-              const onClick = () => {
-                if (frame.line && frame.file) {
-                  navToCode(frame.file, frame.line)
-                }
-              }
-
-              return (
-                <ListItem>
-                  <Button onClick={onClick}>{frame.raw}</Button>
-                </ListItem>
-              )
-            })}
-          </List>
-        )
+        return <CallStackViewCell frames={value} />
       }
     }),
     []
   )
 
-  const transformedData = React.useMemo(() => transformTableData(data), [data])
+  const transformedData = React.useMemo(
+    () => transformTableData(attachId(data)),
+    [data]
+  )
 
   const columns: GridColDef[] = React.useMemo(
     () => getCommonOperationColumns(data).concat([callStackColumnDef]),
@@ -77,10 +63,10 @@ export const CallStackTable = (props: IProps) => {
   return (
     <div className={classes.root}>
       <DataGrid
+        {...commonTableProps}
         columns={columns}
         sortModel={sortModel}
         rows={transformedData}
-        pageSize={30}
       />
     </div>
   )
