@@ -30,7 +30,7 @@ function parseCallStackLine(raw: string): CallStackFrame {
 
   const lineWithParens = result[0].trim()
   const file = raw.slice(0, result.index).trim()
-  const line = Number(lineWithParens.substr(1, lineWithParens.length - 1))
+  const line = Number(lineWithParens.substr(1, lineWithParens.length - 2))
 
   return {
     raw,

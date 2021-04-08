@@ -24,16 +24,28 @@ export function getCommonOperationColumns(
     !firstData || isDef(firstData.device_total_duration)
 
   return [
-    { field: 'name', headerName: 'Name', filterable: true },
+    {
+      field: 'name',
+      headerName: 'Name',
+      flex: 1,
+      filterable: true,
+      resizeable: true
+    },
     hasInputShape
       ? {
           field: 'input_shape',
           headerName: 'Input Shape',
           filterable: false,
-          disableColumnMenu: true
+          disableColumnMenu: true,
+          resizeable: true
         }
       : undefined,
-    { field: 'calls', headerName: 'Calls', filterable: false },
+    {
+      field: 'calls',
+      headerName: 'Calls',
+      disableColumnMenu: true,
+      filterable: false
+    },
     hasDeviceSelfDuration
       ? {
           field: 'device_self_duration',
@@ -63,4 +75,21 @@ export function getCommonOperationColumns(
       disableColumnMenu: true
     }
   ].filter(isDef)
+}
+
+let uid = 1
+export function attachId<
+  T extends CallStackTableDataInner | OperationTableDataInner
+>(data: T[]): T[] {
+  return data.map((d) => ({
+    ...d,
+    id: uid++
+  }))
+}
+
+export const commonTableProps = {
+  rowHeight: 24,
+  headerHeight: 32,
+  pageSize: 30,
+  autoHeight: true
 }

@@ -4,10 +4,7 @@
 
 import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
-import TextField, {
-  StandardTextFieldProps,
-  TextFieldProps
-} from '@material-ui/core/TextField'
+import TextField, { StandardTextFieldProps } from '@material-ui/core/TextField'
 import CardHeader from '@material-ui/core/CardHeader'
 import CardContent from '@material-ui/core/CardContent'
 import { makeStyles } from '@material-ui/core/styles'
@@ -81,7 +78,6 @@ export const Operator: React.FC<IProps> = (props) => {
     OperationTableData | undefined
   >(undefined)
   const [groupBy, setGroupBy] = React.useState(OperationGroupBy.Operation)
-  const [searchOperatorName, setSearchOperatorName] = React.useState('')
   const [top, actualTop, useTop, setTop, setUseTop] = useTopN({
     defaultUseTop: UseTop.Use,
     defaultTop: 10
@@ -114,10 +110,6 @@ export const Operator: React.FC<IProps> = (props) => {
         setOperatorGraph(resp)
       })
   }, [run, worker, view])
-
-  const onSearchOperatorChanged: TextFieldProps['onChange'] = (event) => {
-    setSearchOperatorName(event.target.value as string)
-  }
 
   const onGroupByChanged: SelectProps['onChange'] = (event) => {
     setGroupBy(event.target.value as OperationGroupBy)
@@ -251,15 +243,6 @@ export const Operator: React.FC<IProps> = (props) => {
                         Operator
                       </MenuItem>
                     </Select>
-                  </Grid>
-                  <Grid item>
-                    <TextField
-                      classes={{ root: classes.inputWidthOverflow }}
-                      value={searchOperatorName}
-                      onChange={onSearchOperatorChanged}
-                      type="search"
-                      label="Search by Name"
-                    />
                   </Grid>
                 </Grid>
               </Grid>
