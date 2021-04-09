@@ -215,9 +215,9 @@ class TorchProfilerPlugin(base_plugin.TBPlugin):
         run = self.get_run(name)
         profile = run.get_profile(worker)
         if group_by == "OperationAndInputShape":
-            return self.respond_as_json(profile.operation_stack_by_name_input[op_name+"###"+input_shape])
+            return self.respond_as_json(profile.operation_stack_by_name_input[str(op_name)+"###"+str(input_shape)])
         else:
-            return self.respond_as_json(profile.operation_stack_by_name[op_name])
+            return self.respond_as_json(profile.operation_stack_by_name[str(op_name)])
 
     @wrappers.Request.application
     def kernel_pie_route(self, request):

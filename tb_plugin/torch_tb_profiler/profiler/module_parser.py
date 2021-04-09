@@ -242,7 +242,7 @@ class ModuleParser:
         def parse_event(event, corrid_to_device, corrid_to_runtime, externalid_to_runtime, tid2list, tid2zero_rt_list):
             corrid = event.args.get("correlation", None)
             input_shape = event.args.get("Input dims", None)
-            call_stack = event.args.get("Call stack", None)
+            call_stack = event.args.get("Call stack", "")
             tid = event.tid
             if event.type in [EventTypes.KERNEL, EventTypes.MEMCPY, EventTypes.MEMSET]:
                 device_node = DeviceNode.create(event)
@@ -311,17 +311,14 @@ class ModuleParser:
             stack_lists_group_by_name = dict()
             stack_lists_group_by_name_input = dict()
             for agg in name_stack_to_agg.values():
-                assert (len(agg.call_stacks) <= 1)
-                stack_lists_group_by_name.setdefault(agg.name, []).append(agg)
+                assert (len(agg.call_stacks) == 1)
+                if list(agg.call_stacks)[0]:
+                    stack_lists_group_by_name.setdefault(agg.name, []).append(agg)
             for agg in name_input_stack_to_agg.values():
-                assert (len(agg.call_stacks) <= 1)
-                key = agg.name + "###" + agg.input_shape
-                stack_lists_group_by_name_input.setdefault(key, []).append(agg)
-
-            for key,agg in name_to_agg.items():
-                assert (len(agg.call_stacks) == len(stack_lists_group_by_name[key]))
-            for key,agg in name_input_to_agg.items():
-                assert (len(agg.call_stacks) == len(stack_lists_group_by_name_input[key]))
+                assert (len(agg.call_stacks) == 1)
+                if list(agg.call_stacks)[0]:
+                    key = agg.name + "###" + str(agg.input_shape)
+                    stack_lists_group_by_name_input.setdefault(key, []).append(agg)
 
             return op_list_groupby_name, op_list_groupby_name_input, stack_lists_group_by_name, stack_lists_group_by_name_input
 
