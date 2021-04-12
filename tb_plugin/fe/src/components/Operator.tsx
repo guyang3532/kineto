@@ -4,7 +4,10 @@
 
 import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
-import TextField, { StandardTextFieldProps } from '@material-ui/core/TextField'
+import TextField, {
+  StandardTextFieldProps,
+  TextFieldProps
+} from '@material-ui/core/TextField'
 import CardHeader from '@material-ui/core/CardHeader'
 import CardContent from '@material-ui/core/CardContent'
 import { makeStyles } from '@material-ui/core/styles'
@@ -17,12 +20,17 @@ import Select, { SelectProps } from '@material-ui/core/Select'
 import * as React from 'react'
 import { PieChart } from './charts/PieChart'
 import * as api from '../api'
-import { OperationTableData, OperatorGraph } from '../api'
+import {
+  OperationTableData,
+  OperationTableDataInner,
+  OperatorGraph
+} from '../api'
 import { DataLoading } from './DataLoading'
 import RadioGroup, { RadioGroupProps } from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import { UseTop, useTopN } from '../utils/top'
+import { useSearchDirectly } from '../utils/search'
 import {
   DeviceSelfTimeTooltip,
   DeviceTotalTimeTooltip,
@@ -78,10 +86,25 @@ export const Operator: React.FC<IProps> = (props) => {
     OperationTableData | undefined
   >(undefined)
   const [groupBy, setGroupBy] = React.useState(OperationGroupBy.Operation)
+  const [searchOperatorName, setSearchOperatorName] = React.useState('')
   const [top, actualTop, useTop, setTop, setUseTop] = useTopN({
     defaultUseTop: UseTop.Use,
     defaultTop: 10
   })
+
+  const getName = React.useCallback(
+    (row: OperationTableDataInner) => row.name,
+    []
+  )
+  const [searchedOperatorTable] = useSearchDirectly(
+    searchOperatorName,
+    getName,
+    operatorTable
+  )
+
+  const onSearchOperatorChanged: TextFieldProps['onChange'] = (event) => {
+    setSearchOperatorName(event.target.value as string)
+  }
 
   React.useEffect(() => {
     if (operatorGraph) {
@@ -244,10 +267,19 @@ export const Operator: React.FC<IProps> = (props) => {
                       </MenuItem>
                     </Select>
                   </Grid>
+                  <Grid item>
+                    <TextField
+                      classes={{ root: classes.inputWidthOverflow }}
+                      value={searchOperatorName}
+                      onChange={onSearchOperatorChanged}
+                      type="search"
+                      label="Search by Name"
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
               <Grid>
-                <DataLoading value={operatorTable}>
+                <DataLoading value={searchedOperatorTable}>
                   {(table) => (
                     <OperationTable
                       data={table}

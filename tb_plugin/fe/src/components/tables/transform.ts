@@ -10,10 +10,7 @@ export interface CallStackFrame {
   raw: string
 }
 
-type TransformedCallStackDataInner = Omit<
-  CallStackTableDataInner,
-  'call_stack' | 'callStack'
-> & {
+export interface TransformedCallStackDataInner extends CallStackTableDataInner {
   callStackFrames: CallStackFrame[]
 }
 
@@ -22,7 +19,7 @@ const lineRegex = /\([0-9]+\)$/
 function parseCallStackLine(raw: string): CallStackFrame {
   raw = raw.trim()
   const results = raw.split(':')
-  const location = results.slice(0, results.length - 1).join(':');
+  const location = results.slice(0, results.length - 1).join(':')
 
   const result = lineRegex.exec(location)
   if (!result) {
@@ -31,7 +28,9 @@ function parseCallStackLine(raw: string): CallStackFrame {
 
   const lineWithParens = result[0].trim()
   const file = raw.slice(0, result.index).trim()
-  const line = Number(lineWithParens.substr(1, lineWithParens.length - 2).trim())
+  const line = Number(
+    lineWithParens.substr(1, lineWithParens.length - 2).trim()
+  )
 
   return {
     raw,
