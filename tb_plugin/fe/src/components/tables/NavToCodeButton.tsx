@@ -4,7 +4,7 @@
 
 import * as React from 'react'
 import { CallStackFrame } from './transform'
-import Button from '@material-ui/core/Button'
+import { Button } from 'antd'
 import { navToCode } from '../../utils/vscode'
 
 interface IProps {
@@ -22,7 +22,7 @@ export const NavToCodeButton = (props: IProps) => {
   }
 
   return (
-    <Button disabled={!couldNavToFile} onClick={onClick}>
+    <Button type="link" disabled={!couldNavToFile} onClick={onClick}>
       {raw}
     </Button>
   )

@@ -3,16 +3,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from 'react'
-import { DataGrid, GridColDef, GridSortModel } from '@material-ui/data-grid'
-import { makeStyles } from '@material-ui/core/styles'
-import { CallStackTableData, OperationTableData } from '../../api'
+import { OperationTableData, OperationTableDataInner } from '../../api'
 import { OperationGroupBy } from '../../constants/groupBy'
-import Modal from '@material-ui/core/Modal'
-import * as api from '../../api'
-import { DataLoading } from '../DataLoading'
+import { attachId, getCommonOperationColumns } from './common'
+import { Table, TablePaginationConfig, TableProps } from 'antd'
+import { makeExpandIcon } from './ExpandIcon'
 import { CallStackTable } from './CallStackTable'
-import { attachId, commonTableProps, getCommonOperationColumns } from './common'
-import { ViewCallStackButton } from './ViewCallStackButton'
 
 export interface IProps {
   data: OperationTableData
@@ -21,114 +17,53 @@ export interface IProps {
   view: string
   groupBy: OperationGroupBy
 }
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: '100%'
-  },
-  paper: {
-    position: 'absolute',
-    width: '70%',
-    minWidth: '400px',
-    left: '50%',
-    top: '50%',
-    transform: `translate(-50%, -50%)`,
-    backgroundColor: theme.palette.background.paper,
-    border: '2px solid #000',
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3)
-  }
-}))
-
+const rowExpandable = (record: OperationTableDataInner) => record.has_call_stack
+const expandIcon = makeExpandIcon<OperationTableDataInner>(
+  'View CallStack',
+  (record) => !record.has_call_stack
+)
+const pagination: TablePaginationConfig = {
+  pageSize: 30
+}
 export const OperationTable = (props: IProps) => {
   const { data, run, worker, view, groupBy } = props
-  const classes = useStyles(props)
-
-  const [callStackTableData, setCallStackTableData] = React.useState<
-    CallStackTableData | undefined
-  >(undefined)
-  const [callStackModalOpen, setCallStackModalOpen] = React.useState(false)
-
-  const openCallStackModal = React.useCallback(() => {
-    setCallStackModalOpen(true)
-  }, [])
-
-  const closeCallStackModal = React.useCallback(() => {
-    setCallStackModalOpen(false)
-  }, [])
-
-  const onShowCallStackClicked = React.useCallback(
-    (name: string, inputShape?: string) => {
-      openCallStackModal()
-      api.defaultApi
-        .operationStackGet(run, worker, view, groupBy, name, inputShape)
-        .then((resp) => {
-          setCallStackTableData(resp)
-        })
-    },
-    [run, worker, view, groupBy]
-  )
-
-  const callStackColumnDef: GridColDef = React.useMemo(
-    () => ({
-      field: 'has_call_stack',
-      headerName: 'Call Stack',
-      filterable: false,
-      disableColumnMenu: true,
-      hideSortIcons: true,
-      renderCell: (params) => {
-        const name = params.row.name as string
-        const inputShape = params.row.input_shape as string | undefined
-
-        return (
-          <ViewCallStackButton
-            name={name}
-            inputShape={inputShape}
-            has_call_stack={!!params.value}
-            onClick={onShowCallStackClicked}
-          />
-        )
-      }
-    }),
-    [onShowCallStackClicked]
-  )
-
-  const columns: GridColDef[] = React.useMemo(
-    () => getCommonOperationColumns(data).concat([callStackColumnDef]),
-    [data, callStackColumnDef]
-  )
-
-  const sortModel: GridSortModel = React.useMemo(
-    () => [{ field: 'device_self_duration', sort: 'desc' }],
-    []
-  )
-
-  const renderedTable = React.useMemo(
-    () => (
-      <DataLoading value={callStackTableData}>
-        {(graph) => <CallStackTable data={graph} />}
-      </DataLoading>
-    ),
-    [callStackTableData]
-  )
 
   const rows = React.useMemo(() => attachId(data), [data])
 
-  return (
-    <div className={classes.root}>
-      <DataGrid
-        {...commonTableProps}
-        columns={columns}
-        sortModel={sortModel}
-        rows={rows}
+  const columns = React.useMemo(() => getCommonOperationColumns(rows), [rows])
+
+  const expandIconColumnIndex = columns.length
+  const expandedRowRender = React.useCallback(
+    (record: OperationTableDataInner) => (
+      <CallStackTable
+        data={record}
+        run={run}
+        worker={worker}
+        view={view}
+        groupBy={groupBy}
       />
-      <Modal
-        title="Call stack"
-        open={callStackModalOpen}
-        onClose={closeCallStackModal}
-      >
-        <div className={classes.paper}>{renderedTable}</div>
-      </Modal>
-    </div>
+    ),
+    [run, worker, view, groupBy]
+  )
+
+  const expandable: TableProps<OperationTableDataInner>['expandable'] = React.useMemo(
+    () => ({
+      expandIconColumnIndex,
+      expandIcon,
+      expandedRowRender,
+      rowExpandable
+    }),
+    [expandIconColumnIndex, expandedRowRender]
+  )
+
+  return (
+    <Table
+      size="small"
+      bordered
+      columns={columns}
+      dataSource={rows}
+      pagination={pagination}
+      expandable={expandable}
+    />
   )
 }

@@ -3,71 +3,80 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from 'react'
-import { DataGrid, GridColDef, GridSortModel } from '@material-ui/data-grid'
-import { makeStyles } from '@material-ui/core/styles'
-import { CallStackTableData } from '../../api'
-import { attachId, commonTableProps, getCommonOperationColumns } from './common'
-import { CallStackFrame, transformTableData } from './transform'
-import { EmpytCallStackCell } from './EmptyCallStackCell'
-import { CallStackViewCell } from './CallStackViewCell'
+import { CallStackTableData, OperationTableDataInner } from '../../api'
+import { Table, TableProps } from 'antd'
+
+import * as api from '../../api'
+import { transformTableData, TransformedCallStackDataInner } from './transform'
+import { attachId, getCommonOperationColumns } from './common'
+import { OperationGroupBy } from '../../constants/groupBy'
+import { makeExpandIcon } from './ExpandIcon'
+import { CallFrameList } from './CallframeList'
 
 export interface IProps {
-  data: CallStackTableData
+  data: OperationTableDataInner
+  run: string
+  worker: string
+  view: string
+  groupBy: OperationGroupBy
 }
 
-const useStyles = makeStyles(() => ({
-  root: {
-    width: '100%',
-    height: '100%'
-  }
-}))
+const expandIcon = makeExpandIcon<TransformedCallStackDataInner>(
+  'View call frames',
+  (record) => !record.callStackFrames.length
+)
+
+const rowExpandable = (record: TransformedCallStackDataInner) =>
+  !!record.callStackFrames.length
+const expandedRowRender = (record: TransformedCallStackDataInner) => (
+  <CallFrameList callFrames={record.callStackFrames} />
+)
 
 export const CallStackTable = (props: IProps) => {
-  const { data } = props
-  const classes = useStyles(props)
+  const { data, run, worker, view, groupBy } = props
+  const { name, input_shape } = data
 
-  const callStackColumnDef: GridColDef = React.useMemo(
-    () => ({
-      field: 'callStackFrames',
-      headerName: 'Call Stacks',
-      filterable: false,
-      disableColumnMenu: true,
-      hideSortIcons: true,
-      renderCell: (params) => {
-        const value = params.value as CallStackFrame[]
-        if (!value.length) {
-          return <EmpytCallStackCell />
-        }
+  const [stackData, setStackData] = React.useState<
+    CallStackTableData | undefined
+  >(undefined)
 
-        return <CallStackViewCell frames={value} />
-      }
-    }),
-    []
-  )
+  React.useEffect(() => {
+    api.defaultApi
+      .operationStackGet(run, worker, view, groupBy, name, input_shape)
+      .then((resp) => {
+        setStackData(resp)
+      })
+  }, [name, input_shape, run, worker, view, groupBy])
 
   const transformedData = React.useMemo(
-    () => transformTableData(attachId(data)),
-    [data]
+    () => stackData && transformTableData(attachId(stackData)),
+    [stackData]
   )
 
-  const columns: GridColDef[] = React.useMemo(
-    () => getCommonOperationColumns(data).concat([callStackColumnDef]),
-    [data]
+  const columns = React.useMemo(
+    () => transformedData && getCommonOperationColumns(transformedData),
+    [transformedData]
   )
 
-  const sortModel: GridSortModel = React.useMemo(
-    () => [{ field: 'device_self_duration', sort: 'desc' }],
-    []
+  const expandIconColumnIndex = columns?.length
+
+  const expandable: TableProps<TransformedCallStackDataInner>['expandable'] = React.useMemo(
+    () => ({
+      expandIconColumnIndex,
+      expandIcon,
+      expandedRowRender,
+      rowExpandable
+    }),
+    [expandIconColumnIndex]
   )
 
   return (
-    <div className={classes.root}>
-      <DataGrid
-        {...commonTableProps}
-        columns={columns}
-        sortModel={sortModel}
-        rows={transformedData}
-      />
-    </div>
+    <Table
+      loading={!transformedData}
+      size="small"
+      columns={columns}
+      dataSource={transformedData}
+      expandable={expandable}
+    />
   )
 }
